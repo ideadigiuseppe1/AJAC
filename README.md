@@ -1,14 +1,14 @@
-# AJAC — Simulatore e Analisi Trasferimenti Guardia di Finanza (Ruolo Ispettori)
+# AJAC — simulatore e analisi trasferimenti Guardia di Finanza
 
-**AJAC** è una piattaforma analitica e decisionale creata per supportare i militari della **Guardia di Finanza (Ruolo Ispettori)** nella valutazione consapevole della propria domanda di trasferimento verso le sedi desiderate, basandosi sui dati reali dei bandi e su un modello predittivo che integra il **fattore sorpresa** (Indice di imprevedibilità storica).
+**AJAC** è una piattaforma analitica e decisionale creata per supportare i militari della **Guardia di Finanza (Ruolo Ispettori)** nella valutazione della propria domanda di trasferimento verso le sedi desiderate, basandosi sui dati reali dei bandi e su un modello predittivo che integra il **fattore sorpresa** (chiamato indice di imprevedibilità storica).
 
 ---
 
 ## 1. Finalità e Autore
 
-- **Finalità:** Aiutare il collega ispettore della Guardia di Finanza a orientare la propria domanda di mobilità con dati oggettivi, stimando la probabilità che il proprio punteggio sia sufficiente in base ai posti previsti e all'imprevedibilità storica della sede.
-- **Autore:** Ideato e realizzato da **Giuseppe M.**, militare della Guardia di Finanza appassionato di informatica, finanza e matematica, come progetto no-profit e indipendente a disposizione dei colleghi.
-- **Fonte dei dati:** I punteggi ufficiali pubblicati annualmente dall'amministrazione per finalità di trasparenza (graduatorie ordinarie, posti messi a bando, domande pervenute, cutoff dell'ultimo vincitore e media dei non vincitori).
+- **Finalità:** aiutare il collega ispettore della Guardia di Finanza a orientare la propria domanda di mobilità con dati oggettivi, stimando la probabilità che il proprio punteggio sia sufficiente in base ai posti previsti e all'imprevedibilità storica della sede.
+- **Autore:** ideato e realizzato da **Giuseppe M.**, appassionato di informatica, finanza e matematica, come progetto no-profit e indipendente a disposizione dei colleghi.
+- **Fonte dei dati:** i punteggi ufficiali pubblicati annualmente dall'amministrazione per finalità di trasparenza (graduatorie ordinarie, posti messi a bando, domande pervenute, cutoff dell'ultimo vincitore e media dei non vincitori).
 
 ---
 
@@ -29,24 +29,7 @@ Se aperto direttamente tramite `file://`, un banner diagnostico nell'interfaccia
 
 ---
 
-## 3. Pubblicazione gratuita su GitHub Pages
-
-Il progetto è architettato per funzionare nativamente su **GitHub Pages** a costo zero e senza necessità di server di backend:
-
-1. Crea un repository su GitHub (es. `ajac-graduatorie` o `<tuo-username>.github.io`);
-2. Carica i file del progetto (il file `index.html` e le cartelle `css/`, `data/`, `js/` devono trovarsi nella radice del repository);
-3. Vai su **Settings** del repository GitHub → **Pages**;
-4. In **Build and deployment**, seleziona:
-   - **Source:** *Deploy from a branch*
-   - **Branch:** `main` (o `master`) e cartella `/ (root)`
-   - Clicca **Save**;
-5. Dopo circa 1–2 minuti, il sito sarà online all'indirizzo `https://<tuo-username>.github.io/<nome-repo>/`.
-
-Tutti i percorsi di fogli di stile, dati CSV, GeoJSON e script JavaScript sono relativi e testati per funzionare sia in locale che su GitHub Pages.
-
----
-
-## 4. Come aggiornare i dati in futuro (Aggiornamento 100% Automatico)
+## 3. Come aggiornare i dati in futuro
 
 Il sistema è progettato per essere **completamente dinamico**:
 
@@ -63,20 +46,20 @@ Il sistema è progettato per essere **completamente dinamico**:
 
 ---
 
-## 5. Il Modello Predittivo con Fattore Sorpresa
+## 4. Il Modello Predittivo con Fattore Sorpresa
 
 Il modello predittivo stima la distribuzione del cutoff futuro $C_{s,t+1}$ condizionata al punteggio personale $S$ e ai posti previsti $P$:
 
-1. **Cutoff Atteso ($\widehat{C}$):** Ponderazione temporale che privilegia gli anni recenti, shrinkage verso la media aggregata per sedi con poche osservazioni ed effetto posti regolarizzato ($\beta_P \approx -15.0$ pt/posto).
-2. **Previsione della Domanda ($\widehat{D}$):** Stima condizionata al numero di posti previsti con intervallo di incertezza.
-3. **Indice di Imprevedibilità Storica (0–100):** Misura l'errore out-of-sample residuo non spiegato dal modello, stabilizzato tramite **Empirical Bayes Shrinkage** per non sovrastimare la varianza delle sedi con pochi anni. Classificato in *Bassa (0–35)*, *Moderata (36–65)*, ed *Elevata (66–100)*.
-4. **Distribuzione Predittiva Student-$t$ ($\nu=4$):** Modella le code pesanti e incorpora l'incertezza storica senza moltiplicatori arbitrari. Supporta intervalli all'80% (standard) e 90% (prudente).
-5. **Probabilità di Superamento $P(C \le S)$:** Calcolata sulla distribuzione cumulata, con salvaguardie di certezza (nessuna falsa garanzia: $\ge 95\%$ segnala *«Probabilità stimata molto alta — il trasferimento non è garantito»*).
-6. **Affidabilità della Stima:** Valutata separatamente dalla probabilità (punteggio 0–100, *Alta*, *Media*, *Bassa*) in base alla completezza dello storico, alla stabilità della sede e alla vicinanza dei posti ipotizzati rispetto al range passato.
+1. **Cutoff atteso ($\widehat{C}$):** ponderazione temporale che privilegia gli anni recenti, shrinkage verso la media aggregata per sedi con poche osservazioni ed effetto posti regolarizzato ($\beta_P \approx -15.0$ pt/posto).
+2. **Previsione della Domanda ($\widehat{D}$):** stima condizionata al numero di posti previsti con intervallo di incertezza.
+3. **Indice di Imprevedibilità Storica (0–100):** misura l'errore out-of-sample residuo non spiegato dal modello, stabilizzato tramite **Empirical Bayes Shrinkage** per non sovrastimare la varianza delle sedi con pochi anni. Classificato in *Bassa (0–35)*, *Moderata (36–65)*, ed *Elevata (66–100)*.
+4. **Distribuzione Predittiva Student-$t$ ($\nu=4$):** modella le code pesanti e incorpora l'incertezza storica senza moltiplicatori arbitrari. Supporta intervalli all'80% (standard) e 90% (prudente).
+5. **Probabilità di Superamento $P(C \le S)$:** calcolata sulla distribuzione cumulata, con salvaguardie di certezza (nessuna falsa garanzia: $\ge 95\%$ segnala *«Probabilità stimata molto alta — il trasferimento non è garantito»*).
+6. **Affidabilità della Stima:** valutata separatamente dalla probabilità (punteggio 0–100, *Alta*, *Media*, *Bassa*) in base alla completezza dello storico, alla stabilità della sede e alla vicinanza dei posti ipotizzati rispetto al range passato.
 
 ---
 
-## 6. Struttura dei File
+## 5. Struttura dei File
 
 ```
 index.html                     ← Markup HTML5 moderno e pulito (lang="it", Doctype)
@@ -98,8 +81,8 @@ README.md                      ← Documentazione tecnica e guida GitHub Pages
 
 ---
 
-## 7. Limitazioni Metodologiche
+## 6. Limitazioni Metodologiche
 
-- Il dataset storico non traccia in modo trasparente i subentri da rinunce successive alla pubblicazione;
+- Il dataset storico non traccia in modo trasparente i subentri da rinunce successive alla pubblicazione (c.d. "scorrimenti");
 - L'indice territoriale della mappa descrive la saturazione provinciale a fini orientativi e resta distinto dalla previsione della singola sede;
 - La stima probabilistica costituisce un supporto statistico alle decisioni e non una garanzia formale di trasferimento.
