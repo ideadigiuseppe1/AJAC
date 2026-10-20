@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <title>AJAC — Simulatore e Analisi Trasferimenti Guardia di Finanza (Ispettori)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="#top" class="logo">
+      <span class="mark">A</span>
+      <b>AJAC<span> · Trasferimenti GdF</span></b>
+    </a>
+    <nav class="mainnav">
+      <a href="#simulatore">Simulatore</a>
+      <a href="#mappa">Mappa</a>
+      <a href="#come-funziona">Metodologia</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="topbar-actions">
+      <button type="button" class="btn btn-ghost btn-sm" id="btnOpenBacktestModal">Validazione &amp; Backtesting</button>
+      <a href="#simulatore" class="btn btn-primary btn-sm">Calcola Previsione →</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- Banner diagnostico in caso di errore di caricamento -->
+  <div class="wrap">
+    <div id="errorBanner" class="error-banner"></div>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="eyebrow">AJAC · Dati storici <span class="year-range">2023 → 2026</span> · Guardia di Finanza (Ruolo Ispettori)</div>
+      <h1>Valuta le tue possibilità di trasferimento con il <em>simulatore a fattore sorpresa</em>.</h1>
+      <p class="lead">Uno strumento per aiutare i colleghi della Guardia di Finanza (Ruolo Ispettori) a orientare la domanda di trasferimento: calcola il cutoff atteso, la fascia predittiva, l'effetto dei posti e l'imprevedibilità storica della sede.</p>
+      <div class="hero-ctas">
+        <a href="#simulatore" class="btn btn-primary">Avvia la Simulazione Sede →</a>
+        <a href="#mappa" class="btn btn-ghost">Esplora la Mappa Territoriale</a>
+      </div>
+      <div class="hero-stats">
+        <div><div class="num" id="statProvince">—</div><div class="lbl">Province con dati</div></div>
+        <div><div class="num year-range">2023 → 2026</div><div class="lbl">Storico disponibile</div></div>
+        <div><div class="num">0–1200</div><div class="lbl">Scala punteggi graduatoria</div></div>
+        <div><div class="num">89.6%</div><div class="lbl">Copertura empirica intervallo</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Simulatore Predittivo Sede (Core AJAC) -->
+  <section id="simulatore" style="background:#f9f8f3;border-top:1px solid var(--line);border-bottom:1px solid var(--line);">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="section-eyebrow">Simulatore Decisionale AJAC</div>
+        <h2>Analisi predittiva del trasferimento</h2>
+        <p>Inserisci la sede desiderata, il tuo punteggio attuale e i posti previsti per il prossimo ciclo. Il modello valuta l'imprevedibilità storica e calcola la distribuzione del cutoff.</p>
+      </div>
+
+      <div class="simulator">
+        <!-- Pannello Controlli -->
+        <div class="sim-controls-grid">
+          <!-- 1. Selezione Sede -->
+          <div class="sim-field">
+            <label for="simSedeSelect">1. Sede di destinazione</label>
+            <div class="sim-select-wrap">
+              <select id="simSedeSelect" aria-label="Sede di destinazione"></select>
+            </div>
+            <div class="sim-scale-hint" style="margin-top:6px;">129 sedi disponibili nel dataset storico (2023–2026).</div>
+          </div>
+
+          <!-- 2. Punteggio Personale (0 - 1200) -->
+          <div class="sim-field sim-field-score">
+            <label for="scoreNumber">2. Punteggio personale (scala 0–<span id="scoreMaxLabel">1200</span>)</label>
+            <div class="sim-score-input-row">
+              <input type="number" id="scoreNumber" min="0" max="1200" value="650" aria-label="Punteggio numerico">
+              <span style="font-family:var(--font-mono);color:var(--muted);font-size:14px;">punti</span>
+            </div>
+            <input type="range" id="scoreRange" min="0" max="1200" value="650" aria-label="Slider punteggio">
+            <div class="sim-scale-hint">Inserisci il punteggio maturato o stimato con gli incrementi annuali.</div>
+          </div>
+
+          <!-- 3. Posti Previsti -->
+          <div class="sim-field">
+            <label for="plannedPostiInput">3. Posti previsti</label>
+            <div class="sim-posti-input">
+              <input type="number" id="plannedPostiInput" min="1" max="100" value="1" aria-label="Numero di posti previsti">
+              <span style="font-family:var(--font-mono);font-size:13px;color:var(--muted);">posti</span>
+            </div>
+            <div class="sim-posti-hint" id="simPostiHint" style="margin-top:6px;">Posti disponibili ipotizzati per il prossimo bando.</div>
+          </div>
+        </div>
+
+        <!-- Selettore Livello di Copertura -->
+        <div class="sim-interval-picker">
+          <label>Livello di copertura fascia predittiva:</label>
+          <div class="interval-pill-group">
+            <button type="button" class="interval-pill active" data-level="0.80">80% (Standard)</button>
+            <button type="button" class="interval-pill" data-level="0.90">90% (Prudente)</button>
+          </div>
+          <span style="margin-left:auto;font-size:12px;">Validazione out-of-sample: 80% nom. → <b>77.6%</b> emp. | 90% nom. → <b>89.6%</b> emp.</span>
+        </div>
+
+        <!-- Cruscotto Risultati Predittivi Dinamici -->
+        <div id="predictionResultDashboard">
+          <!-- Popolato dinamicamente da app.js -->
+        </div>
+
+        <!-- Banner per consultare il backtesting completo -->
+        <div class="backtest-banner-cta">
+          <div>
+            <p><strong>Verifica empirica e trasparenza metodologica</strong></p>
+            <p style="font-size:12.5px;color:var(--muted);">Il modello predittivo con fattore sorpresa è stato testato su dati out-of-sample (2025 e 2026). Consulta i risultati dettagliati del backtesting temporale.</p>
+          </div>
+          <button type="button" class="btn btn-ghost btn-sm" id="btnOpenBacktestModal2">Visualizza Metriche Backtesting →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sezione Mappa Territoriale -->
+  <section class="map-section" id="mappa">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="section-eyebrow">Quadro Geografico Territoriale</div>
+        <h2>Pressione competitiva per provincia</h2>
+        <p>Visualizzazione territoriale delle province italiane. L'indice provinciale aggrega la saturazione massima e resta distinto dalla previsione della singola sede.</p>
+      </div>
+
+      <div class="map-shell">
+        <div class="map-toolbar">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input type="text" id="searchInput" placeholder="Cerca provincia (es. Roma, Napoli, Milano)..." autocomplete="off" aria-label="Cerca provincia">
+            <div id="searchResults"></div>
+          </div>
+          <div class="zoom-controls">
+            <button type="button" id="zoomReset" title="Reimposta visuale Italia">⟲</button>
+          </div>
+        </div>
+
+        <div class="map-body">
+          <div class="map-canvas-wrap">
+            <div id="italyMap"></div>
+            <div id="mapStatus">Caricamento mappa e dati territoriali...</div>
+          </div>
+
+          <aside class="side-panel" id="sidePanel" aria-label="Dettagli provincia">
+            <div id="provinceDetail">
+              <div class="panel-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path d="M12 21s-8-7.5-8-12a8 8 0 1 1 16 0c0 4.5-8 12-8 12z"></path>
+                  <circle cx="12" cy="9" r="2.5"></circle>
+                </svg>
+                <p>Passa il mouse su una provincia per un'anteprima, oppure cliccala per aprire l'elenco delle sedi e lanciare la simulazione predittiva.</p>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div class="map-legend">
+          <span class="lg-title">Competitività Territoriale:</span>
+          <span class="lg-item"><span class="sw" style="background:var(--easy);"></span> Facile</span>
+          <span class="lg-item"><span class="sw" style="background:var(--mid);"></span> Media</span>
+          <span class="lg-item"><span class="sw" style="background:var(--hard);"></span> Difficile</span>
+          <span class="lg-item"><span class="sw" style="background:var(--vhard);"></span> Molto difficile</span>
+          <span class="lg-item"><span class="sw" style="background:var(--nodata);"></span> Senza dati</span>
+          <span class="demo-flag" style="margin-left:auto;">Indice provinciale: modalità dimostrativa</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Come Funziona e Metodologia -->
+  <section id="come-funziona">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="section-eyebrow">Principi Statistici</div>
+        <h2>I tre pilastri del modello predittivo</h2>
+        <p>Costruito per supportare le decisioni del personale, garantendo trasparenza sui limiti del campione e prudenza statistica.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <h3>Fattore Sorpresa &amp; Shrinkage</h3>
+          <p>Misura quanto il comportamento storico della sede ha deviato dalle previsioni fuori campione, regolarizzando le sedi con pochi anni verso la dispersione generale.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <h3>Effetto Posti &amp; Domanda</h3>
+          <p>Valuta in che misura una variazione dei posti previsti riduce il cutoff e attrae nuove domande, stimando empiricamente l'elasticità senza relazioni arbitrarie.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <h3>Distribuzione Predittiva Calibrata</h3>
+          <p>Nessuna falsa certezza: calcola la probabilità su distribuzioni a code spesse (Student-t) e separa la probabilità dall'affidabilità metodologica dei dati.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sezione FAQ (Domande Frequenti) -->
+  <section id="faq" class="faq-section">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="section-eyebrow">Chiarezza e Trasparenza</div>
+        <h2>Domande frequenti (FAQ)</h2>
+        <p>Finalità dello strumento, autore, fonti e concetti statistici spiegati in parole semplici.</p>
+      </div>
+
+      <div class="faq-grid">
+        <!-- 1. A cosa serve -->
+        <div class="faq-card">
+          <h3>A cosa serve questo strumento?</h3>
+          <p><strong>AJAC</strong> nasce per aiutare il militare della <strong>Guardia di Finanza</strong>, nello specifico appartenente al <strong>Ruolo Ispettori</strong>, a presentare la domanda di trasferimento verso una sede desiderata basandosi sui dati reali e non su semplici supposizioni.</p>
+          <p>Il simulatore calcola il cutoff atteso, la fascia predittiva di variabilità e la probabilità stimata che il proprio punteggio personale sia sufficiente in funzione del numero di posti previsti, basandosi su dati storici e ipotesi metodologiche trasparenti e verificate.</p>
+        </div>
+
+        <!-- 2. Chi l'ha creato -->
+        <div class="faq-card">
+          <h3>Chi l'ha creato?</h3>
+          <p>È stato ideato e sviluppato da <strong>Giuseppe M.</strong>, un militare che vuole aiutare i colleghi, appassionato di <strong>informatica, finanza e matematica</strong>.</p>
+          <p>Il progetto è interamente indipendente, no-profit e gratuito, con l'intento di mettere a disposizione del personale uno strumento analitico moderno e oggettivo per compiere scelte consapevoli per il proprio futuro professionale e familiare.</p>
+        </div>
+
+        <!-- 3. Fonte dei dati -->
+        <div class="faq-card">
+          <h3>Qual è la fonte dei dati?</h3>
+          <p>La fonte è costituita dai <strong>punteggi «per trasparenza» che sono pubblicati anno per anno dall'amministrazione</strong> al termine delle procedure delle graduatorie di mobilità.</p>
+          <p>I dati comprendono posti disponibili, domande pervenute, saturazione, punteggio del primo classificato, punteggio di cutoff (ultimo vincitore) e media dei non vincitori. I dati originali non vengono in alcun modo alterati né inventati.</p>
+        </div>
+
+        <!-- 4. Imprevedibilità storica e Shrinkage empirico -->
+        <div class="faq-card">
+          <h3>Cosa indicano l'«Imprevedibilità storica» e l'«Errore out-of-sample regolarizzato (shrinkage empirico)»?</h3>
+          <p><strong>• Imprevedibilità storica (Fattore sorpresa):</strong> Non tutte le sedi si comportano nello stesso modo. Esistono sedi molto stabili (dove il punteggio minimo varia di pochissimi punti di anno in anno) e sedi dove il cutoff oscilla in modo brusco e inatteso (ad esempio per l'arrivo imprevisto di colleghi anziani con punteggi alti o repentine variazioni dei posti). L'indice misura quanto una sede è risultata storicamente difficile da prevedere: più è alto, maggiore è la prudenza da adottare.</p>
+          <p><strong>• Errore medio out-of-sample (fuori campione):</strong> Per calcolare l'affidabilità reale senza auto-ingannarsi, il modello viene testato simulando il passato: fa finta di essere nel 2024 per prevedere il 2025 usando <em>solo</em> le informazioni fino al 2024, e poi confronta la previsione con il dato effettivo. Questo evita stime artificialmente ottimistiche.</p>
+          <p><strong>• Shrinkage empirico (Regolarizzazione prudente):</strong> Avendo a disposizione pochi anni di storico per singola sede, calcolare la variabilità solo su due o tre numeri locali rischierebbe di dare conclusioni affrettate. Lo shrinkage funge da "ancora di sicurezza": combina l'errore specifico della sede con la variabilità media generale di tutte le sedi d'Italia. Se una sede ha pochi dati, la stima resta prudentemente ancorata alla variabilità nazionale; man mano che gli anni aumentano, acquisisce maggiore peso la specificità locale.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Modale Dettagliata Risultati del Backtesting -->
+<div class="backtest-modal-backdrop" id="backtestModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalBacktestTitle">
+  <div class="backtest-modal">
+    <button type="button" class="modal-close-btn" id="btnCloseBacktestModal" aria-label="Chiudi finestra">✕</button>
+    <div class="section-eyebrow">Validazione Fuori Campione (2023–2026)</div>
+    <h3 id="modalBacktestTitle">Risultati del Backtesting Temporale</h3>
+    <div id="backtestModalBody">
+      <!-- Popolato dinamicamente da app.js -->
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="logo" style="margin-bottom:10px;">
+          <span class="mark">A</span>
+          <b>AJAC<span> · Trasferimenti GdF</span></b>
+        </div>
+        <p class="fnote">Strumento indipendente di stima predittiva per le graduatorie di trasferimento del personale della Guardia di Finanza (Ruolo Ispettori), basato sui dati storici ufficiali pubblicati per trasparenza. Non sostituisce le fonti ufficiali di amministrazione — verifica sempre i bandi originali. Geometria province: dati ISTAT via progetto open source geojson-italy.</p>
+      </div>
+      <nav aria-label="Navigazione piè di pagina">
+        <a href="#simulatore">Simulatore Predittivo</a>
+        <a href="#mappa">Mappa Territoriale</a>
+        <a href="#come-funziona">Metodologia</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 AJAC — Storico disponibile: <span class="year-range">2023 → 2026</span></span>
+      <span>Simulatore predittivo con fattore sorpresa e validazione temporale out-of-sample</span>
+    </div>
+  </div>
+</footer>
+
+<div id="tooltip"></div>
+
+<!-- Dipendenze JS (Leaflet + PapaParse per il CSV; eliminato TopoJSON CDN per evitare blocchi MIME) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+<!-- Moduli dell'applicazione -->
+<script src="js/provinces-registry.js"></script>
+<script src="js/sede-provincia-mapping.js"></script>
+<script src="js/data.js"></script>
+<script src="js/competitiveness.js"></script>
+<script src="js/predictive-model.js"></script>
+<script src="js/map.js"></script>
+<script src="js/app.js"></script>
+
+<script>
+  // Collega anche il secondo pulsante di apertura modale backtesting
+  document.getElementById("btnOpenBacktestModal2")?.addEventListener("click", () => {
+    document.getElementById("btnOpenBacktestModal")?.click();
+  });
+</script>
+</body>
+</html>
